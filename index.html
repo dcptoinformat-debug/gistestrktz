@@ -198,7 +198,30 @@
       button{display:none}
       .container{padding:0}
     }
-  </style>
+  
+
+    .chart-wrap{width:100%; min-height:420px}
+    #chart{display:block; width:100% !important; min-height:420px}
+    @media (max-width: 980px){
+      .container{padding:24px 14px 90px}
+      .card{padding:20px}
+      .row .col-4{grid-column:span 12}
+      .row .col-6{grid-column:span 12}
+      #chart{min-height:340px}
+    }
+    @media (max-width: 640px){
+      h1{font-size:clamp(22px,7vw,30px)}
+      .pill{display:flex; width:100%; border-radius:16px; justify-content:center; text-align:center; flex-wrap:wrap}
+      .btns button{width:100%}
+      .stat{flex-direction:column; align-items:flex-start}
+      table, thead, tbody, th, td, tr{display:block}
+      thead{display:none}
+      #sourcesBody tr{border-top:1px solid var(--border); padding:10px 0}
+      #sourcesBody td{border:0; padding:6px 0}
+      #sourcesBody td::before{content:attr(data-label); display:block; color:var(--muted); font-size:.9rem; margin-bottom:4px}
+      #chart{min-height:280px}
+    }
+    </style>
 </head>
 <body>
 <div class="container">
@@ -222,16 +245,27 @@
 </div>
 <div class="card span-12">
 <h2>Рівень 1 (базовий)</h2>
-<p class="muted">Середня швидкість, таблиця джерел</p>
-<div class="row">
+<p class="muted">Таблиця джерел, середня швидкість</p><h3>2) Таблиця джерел</h3><div class="table-wrap-mobile" style="overflow:auto">
+<table id="sourcesTable">
+<thead>
+<tr>
+<th style="width:40px">№</th>
+<th>Джерело</th>
+<th style="width:140px">Відстань (км)</th>
+<th style="width:140px">Час (год)</th>
+</tr>
+</thead>
+<tbody id="sourcesBody"></tbody>
+</table>
+</div><div class="hr"></div><div class="row">
 <div class="col-4">
-<label>2) Обчислення середньої швидкості (за даними Google Maps)</label>
+<label>3) Обчислення середньої швидкості (за даними Google Maps)</label>
 <div class="row">
 <div class="col-4"><label class="muted">Відстань, км</label><input id="distKm" min="1" type="number" value="1280"/></div>
 <div class="col-4"><label class="muted">Години</label><input id="timeH" min="0" type="number" value="16"/></div>
 <div class="col-4"><label class="muted">Хвилини</label><input id="timeM" max="59" min="0" type="number" value="30"/></div>
 </div>
-<div class="hr"></div>
+
 <div class="stat">🚚 Середня швидкість: <b id="avgSpeed">—</b> км/год</div>
 </div>
 <div class="col-4">
@@ -255,21 +289,10 @@
 <div class="stat">🗺️ Середня швидкість: <b id="osmAvgSpeed">—</b> км/год</div>
 </div>
 </div>
+
 <div class="hr"></div>
-<h3>3) Таблиця джерел</h3>
-<div class="table-wrap-mobile" style="overflow:auto">
-<table id="sourcesTable">
-<thead>
-<tr>
-<th style="width:40px">№</th>
-<th>Джерело</th>
-<th style="width:140px">Відстань (км)</th>
-<th style="width:140px">Час (год)</th>
-</tr>
-</thead>
-<tbody id="sourcesBody"></tbody>
-</table>
-</div>
+
+
 </div>
 <div class="card span-6">
 <h2>Рівень 2 (середній)</h2>
@@ -286,8 +309,8 @@
 <label><input class="factor" type="checkbox" value="Погодні умови"/> Погодні умови</label>
 <label><input class="factor" type="checkbox" value="Обмеження швидкості"/> Обмеження швидкості</label>
 <label><input class="factor" type="checkbox" value="Тип вантажу/вага"/> Тип вантажу/вага</label>
-<input id="factorOther" placeholder="Інше: впишіть свій варіант" type="text">
-</input></div>
+<input id="factorOther" placeholder="Інше: впишіть свій варіант" type="text"/>
+</div>
 </div>
 </div>
 <div class="card span-6">
@@ -307,8 +330,8 @@
 <div class="stat">⛽ OpenStreetMap: <b id="fuelLiters3">—</b> л | 💳 <b id="fuelCost3">—</b> грн</div>
 </div>
 <div class="card span-6">
-<h3>9) Простий графік: відстань–час</h3>
-<p class="muted">Введіть для кожного джерела час у годинах та відстань у км. Натисніть «Побудувати графік».</p>
+<h3>9) Графік відстань–час</h3>
+<p class="muted">Введіть для кожного джерела час у годинах та відстань у кілометрах. Графік масштабується автоматично й показує підписи точок для кожного сервісу.</p>
 <div class="row">
 <div class="col-6">
 <label>Google Maps — час (год)</label>
@@ -388,10 +411,10 @@
     function buildRow(idx, r={}){
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="idx" style="text-align:center">${idx}</td>
-        <td><input class="table-input src" value="${r.source??''}" readonly></td>
-        <td><input class="table-input dist" type="number" value="${r.dist??''}" step="1" placeholder="км"></td>
-        <td><input class="table-input time" type="number" value="${r.time??''}" step="0.1" placeholder="год"></td>`;
+        <td class="idx" data-label="№" style="text-align:center">${idx}</td>
+        <td data-label="Джерело"><input class="table-input src" value="${r.source??''}" readonly></td>
+        <td data-label="Відстань (км)"><input class="table-input dist" type="number" value="${r.dist??''}" step="1" placeholder="км"></td>
+        <td data-label="Час (год)"><input class="table-input time" type="number" value="${r.time??''}" step="0.1" placeholder="год"></td>`;
       return tr;
     }
     function renderRows(rows){ tb.innerHTML=''; rows.forEach((r,i)=>tb.appendChild(buildRow(i+1,r))); renumber(); }
@@ -474,32 +497,152 @@
       const blob=new Blob([htmlContent], {type:'text/html;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='Практична_робота.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     }
 
-    const canvas=document.getElementById('chart'), ctx=canvas.getContext('2d'), PAD=48;
+    
+const canvas=document.getElementById('chart'), ctx=canvas.getContext('2d');
+let PAD = 56;
 
-function resizeCanvas(){
+function getCanvasSize(){
   const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = 500;
+  const dpr = window.devicePixelRatio || 1;
+  const width = Math.max(320, Math.floor(rect.width));
+  const height = window.innerWidth <= 640 ? 280 : window.innerWidth <= 980 ? 340 : 460;
+  canvas.width = Math.floor(width * dpr);
+  canvas.height = Math.floor(height * dpr);
+  canvas.style.height = height + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  PAD = window.innerWidth <= 640 ? 42 : 56;
+  return {width, height};
 }
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
 
-    function resizeCanvas(){
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
-      const rect = canvas.getBoundingClientRect();
-      const cssWidth = Math.max(280, Math.round(rect.width || 900));
-      const cssHeight = Math.max(220, Math.round(cssWidth * 380 / 900));
-      canvas.style.height = cssHeight + 'px';
-      canvas.width = Math.round(cssWidth * dpr);
-      canvas.height = Math.round(cssHeight * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-    function clearChart(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#0c1430'; ctx.fillRect(0,0,canvas.width,canvas.height); }
-    function drawAxes(maxX,maxY){ const w=canvas.clientWidth,h=canvas.clientHeight; ctx.strokeStyle='rgba(255,255,255,.08)'; for(let i=0;i<=5;i++){ const y=PAD+(h-PAD*2)*i/5; ctx.beginPath(); ctx.moveTo(PAD,y); ctx.lineTo(w-PAD,y); ctx.stroke(); } for(let i=0;i<=7;i++){ const x=PAD+(w-PAD*2)*i/7; ctx.beginPath(); ctx.moveTo(x,PAD); ctx.lineTo(x,h-PAD); ctx.stroke(); } ctx.strokeStyle='rgba(255,255,255,.3)'; ctx.beginPath(); ctx.moveTo(PAD,h-PAD); ctx.lineTo(w-PAD,h-PAD); ctx.stroke(); ctx.beginPath(); ctx.moveTo(PAD,h-PAD); ctx.lineTo(PAD,PAD); ctx.stroke(); ctx.fillStyle='#aab5d1'; ctx.font='12px Arial'; ctx.fillText('Час (год)', w/2-24, h-14); ctx.save(); ctx.translate(16,h/2); ctx.rotate(-Math.PI/2); ctx.fillText('Відстань (км)', 0,0); ctx.restore(); }
-    function createScales(maxX,maxY){ const w=canvas.clientWidth,h=canvas.clientHeight; return { sx:(x)=> PAD + (x/maxX)*(w-PAD*2), sy:(y)=> h-PAD - (y/maxY)*(h-PAD*2) }; }
-    function drawSeries(points,color,label,yOffset,sx,sy){ if(points.length<2) return; ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.beginPath(); points.forEach((p,i)=>{ const x=sx(p.x), y=sy(p.y); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }); ctx.stroke(); ctx.fillStyle=color; ctx.fillText(label, PAD+8, PAD+yOffset); ctx.restore(); }
-    function drawChart(){ clearChart(); const gT=+gTime.value||0,gD=+gDist.value||0,nT=+nTime.value||0,nD=+nDist.value||0,bT=+bTime.value||0,bD=+bDist.value||0; const points=[{x:gT,y:gD},{x:nT,y:nD},{x:bT,y:bD}].filter(p=>p.x>0&&p.y>0); if(!points.length) return; const maxX=Math.max(...points.map(p=>p.x))*1.1, maxY=Math.max(...points.map(p=>p.y))*1.1, {sx,sy}=createScales(maxX,maxY); drawAxes(maxX,maxY); drawSeries([{x:0,y:0},{x:gT,y:gD}],'#6ea8fe','Google Maps',8,sx,sy); drawSeries([{x:0,y:0},{x:nT,y:nD}],'#8df1d6','HERE WeGo',28,sx,sy); drawSeries([{x:0,y:0},{x:bT,y:bD}],'#ff9d5c','OpenStreetMap',48,sx,sy); }
-    clearChart(); drawChart();
+function clearChart(){
+  const {width, height} = getCanvasSize();
+  ctx.clearRect(0,0,width,height);
+  ctx.fillStyle='#0c1430';
+  ctx.fillRect(0,0,width,height);
+}
+
+function drawAxes(maxX,maxY){
+  const width = canvas.getBoundingClientRect().width;
+  const height = parseFloat(canvas.style.height);
+  ctx.strokeStyle='rgba(255,255,255,.08)';
+  ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const y=PAD+(height-PAD*2)*i/5;
+    ctx.beginPath(); ctx.moveTo(PAD,y); ctx.lineTo(width-PAD,y); ctx.stroke();
+  }
+  for(let i=0;i<=6;i++){
+    const x=PAD+(width-PAD*2)*i/6;
+    ctx.beginPath(); ctx.moveTo(x,PAD); ctx.lineTo(x,height-PAD); ctx.stroke();
+  }
+  ctx.strokeStyle='rgba(255,255,255,.35)';
+  ctx.lineWidth=1.2;
+  ctx.beginPath(); ctx.moveTo(PAD,height-PAD); ctx.lineTo(width-PAD,height-PAD); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PAD,height-PAD); ctx.lineTo(PAD,PAD); ctx.stroke();
+
+  ctx.fillStyle='#aab5d1';
+  ctx.font=(window.innerWidth <= 640 ? '11px Arial' : '12px Arial');
+  ctx.fillText('Час (год)', width/2-28, height-14);
+  ctx.save();
+  ctx.translate(16,height/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('Відстань (км)', 0, 0);
+  ctx.restore();
+
+  ctx.fillStyle='#93a1c7';
+  for(let i=0;i<=5;i++){
+    const frac=i/5;
+    const y=PAD+(height-PAD*2)*i/5;
+    const label=Math.round(maxY*(1-frac));
+    ctx.fillText(String(label), 8, y+4);
+  }
+  for(let i=0;i<=6;i++){
+    const frac=i/6;
+    const x=PAD+(width-PAD*2)*i/6;
+    const label=(maxX*frac).toFixed(1).replace(/\.0$/,'');
+    ctx.fillText(String(label), x-8, height-PAD+18);
+  }
+}
+
+function createScales(maxX,maxY){
+  const width = canvas.getBoundingClientRect().width;
+  const height = parseFloat(canvas.style.height);
+  return {
+    sx:(x)=> PAD + (x/maxX)*(width-PAD*2),
+    sy:(y)=> height-PAD - (y/maxY)*(height-PAD*2)
+  };
+}
+
+function drawLineAndPoint(xVal,yVal,color,label,sx,sy){
+  if(!(xVal>0 && yVal>0)) return;
+  const x=sx(xVal), y=sy(yVal);
+  ctx.save();
+  ctx.strokeStyle=color;
+  ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.moveTo(sx(0), sy(0));
+  ctx.lineTo(x, y);
+  ctx.stroke();
+
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.arc(x, y, window.innerWidth <= 640 ? 4 : 5, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.font=(window.innerWidth <= 640 ? '11px Arial' : '12px Arial');
+  const labelX = Math.min(x + 8, canvas.getBoundingClientRect().width - 110);
+  const labelY = Math.max(y - 10, 18);
+  ctx.fillText(`${label}: ${xVal} год, ${yVal} км`, labelX, labelY);
+  ctx.restore();
+}
+
+function drawLegend(items){
+  const width = canvas.getBoundingClientRect().width;
+  let x = PAD;
+  const y = 22;
+  ctx.font=(window.innerWidth <= 640 ? '11px Arial' : '12px Arial');
+  items.forEach(item=>{
+    ctx.fillStyle=item.color;
+    ctx.fillRect(x, y-8, 14, 14);
+    ctx.fillStyle='#dfe6ff';
+    ctx.fillText(item.label, x+20, y+3);
+    x += window.innerWidth <= 640 ? 95 : 135;
+  });
+}
+
+function drawChart(){
+  clearChart();
+  const gT=+gTime.value||0,gD=+gDist.value||0,nT=+nTime.value||0,nD=+nDist.value||0,bT=+bTime.value||0,bD=+bDist.value||0;
+  const points=[{x:gT,y:gD},{x:nT,y:nD},{x:bT,y:bD}].filter(p=>p.x>0&&p.y>0);
+  const width = canvas.getBoundingClientRect().width;
+  const height = parseFloat(canvas.style.height);
+
+  if(!points.length){
+    ctx.fillStyle='#aab5d1';
+    ctx.font='14px Arial';
+    ctx.fillText('Немає даних для побудови графіка', width/2 - 110, height/2);
+    return;
+  }
+
+  const maxX=Math.max(...points.map(p=>p.x))*1.15;
+  const maxY=Math.max(...points.map(p=>p.y))*1.15;
+  const {sx,sy}=createScales(maxX,maxY);
+  drawAxes(maxX,maxY);
+  drawLegend([
+    {label:'Google Maps', color:'#6ea8fe'},
+    {label:'HERE WeGo', color:'#8df1d6'},
+    {label:'OpenStreetMap', color:'#ff9d5c'}
+  ]);
+  drawLineAndPoint(gT,gD,'#6ea8fe','Google',sx,sy);
+  drawLineAndPoint(nT,nD,'#8df1d6','HERE',sx,sy);
+  drawLineAndPoint(bT,bD,'#ff9d5c','OSM',sx,sy);
+}
+
+window.addEventListener('resize', drawChart);
+['gTime','gDist','nTime','nDist','bTime','bDist'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', drawChart);
+});
+clearChart(); drawChart();
+
   </script>
 </body>
 </html>
